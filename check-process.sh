@@ -3,66 +3,66 @@
 ################
 # Scripts name : check-process.sh ver 1.0
 # Usage        : ./check-process.sh
-#                “¯ˆêƒfƒBƒŒƒNƒgƒŠ‚Écheck-process.conf‚ğ”z’u‚µAcron‚Å’èŠúÀs‚·‚éB
-# Description  : LinuxƒvƒƒZƒXƒ`ƒFƒbƒNƒXƒNƒŠƒvƒg
+#                åŒä¸€ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«check-process.confã‚’é…ç½®ã—ã€cronã§å®šæœŸå®Ÿè¡Œã™ã‚‹ã€‚
+# Description  : Linuxãƒ—ãƒ­ã‚»ã‚¹ãƒã‚§ãƒƒã‚¯ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
 # Create       : 2017/12/14 Tetsu Okamoto (https://tech-mmmm.blogspot.jp/)
 # Modify       : 
 ################
 
 currentdir=`dirname $0`
-conffile="${currentdir}/check-process.conf"    # İ’èƒtƒ@ƒCƒ‹
-tmpfile="${currentdir}/check-process.tmp"      # ƒvƒƒZƒXî•ñ•Û‘¶—pˆêƒtƒ@ƒCƒ‹
-rc=0    # Retuan CodeŠm”F—p
+conffile="${currentdir}/check-process.conf"    # è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«
+tmpfile="${currentdir}/check-process.tmp"      # ãƒ—ãƒ­ã‚»ã‚¹æƒ…å ±ä¿å­˜ç”¨ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«
+rc=0    # Retuan Codeç¢ºèªç”¨
 
-# ‚·‚Å‚ÉDown‚µ‚Ä‚¢‚éƒvƒƒZƒXî•ñ‚ğæ“¾
+# ã™ã§ã«Downã—ã¦ã„ã‚‹ãƒ—ãƒ­ã‚»ã‚¹æƒ…å ±ã‚’å–å¾—
 if [ -f ${tmpfile} ]; then
     down_process=`paste -d "|" -s ${tmpfile}`
 fi
 echo -n > ${tmpfile}
 
-# İ’èƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+# è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 cat ${conffile} | while read line
 do
-    # ‹ó”’‹æØ‚è‚Å•ªŠ„
+    # ç©ºç™½åŒºåˆ‡ã‚Šã§åˆ†å‰²
     set -- ${line}
     [ $rc -lt $? ] && rc=$?
     
-    # ƒRƒƒ“ƒgs‚Æ‹ós‚ğˆ—‚µ‚È‚¢
+    # ã‚³ãƒ¡ãƒ³ãƒˆè¡Œã¨ç©ºè¡Œã‚’å‡¦ç†ã—ãªã„
     if [ `echo $1 | grep -v -e '^ *#' -e '^$' | wc -c` -gt 0 ]; then
         [ $rc -lt $? ] && rc=$?
         
-        # Œ»İ‚ÌƒvƒƒZƒX”‚ğæ“¾
+        # ç¾åœ¨ã®ãƒ—ãƒ­ã‚»ã‚¹æ•°ã‚’å–å¾—
         count=`ps ahxo args | grep $1 | grep -v -e "^grep" | wc -l`
         [ $rc -lt $? ] && rc=$?
         
-        # ƒvƒƒZƒX”ƒ`ƒFƒbƒN
+        # ãƒ—ãƒ­ã‚»ã‚¹æ•°ãƒã‚§ãƒƒã‚¯
         if [ ${count} -lt $2 ]; then
-            # Down‚Ìˆ—
-            # ‚·‚Å‚ÉDown‚µ‚Ä‚¢‚éƒvƒƒZƒX‚©Šm”F
+            # Downæ™‚ã®å‡¦ç†
+            # ã™ã§ã«Downã—ã¦ã„ã‚‹ãƒ—ãƒ­ã‚»ã‚¹ã‹ç¢ºèª
             if [ -n "${down_process}" ] && [ `echo $1 | egrep "${down_process}" | wc -c` -gt 0 ]; then
-                # ‚·‚Å‚ÉDown
+                # ã™ã§ã«Down
                 [ $rc -lt $? ] && rc=$?
                 message="[INFO] Process \"$1\" still down"
             else
-                # ‰‰ñDown
+                # åˆå›Down
                 [ $rc -lt $? ] && rc=$?                
                 message="[ERROR] Process \"$1\" down"
             fi
-            # ƒƒO‚Öo—Í
+            # ãƒ­ã‚°ã¸å‡ºåŠ›
             logger $message
             [ $rc -lt $? ] && rc=$?
             
-            # Donw‚µ‚Ä‚¢‚éƒvƒƒZƒXî•ñ‚ğo—Í
+            # Donwã—ã¦ã„ã‚‹ãƒ—ãƒ­ã‚»ã‚¹æƒ…å ±ã‚’å‡ºåŠ›
             echo $1 >> ${tmpfile}
         else
-            # Up‚Ìˆ—
-            # Down‚µ‚Ä‚¢‚½ƒvƒƒZƒX‚©Šm”F
+            # Upæ™‚ã®å‡¦ç†
+            # Downã—ã¦ã„ãŸãƒ—ãƒ­ã‚»ã‚¹ã‹ç¢ºèª
             if [ -n "${down_process}" ] && [ `echo $1 | egrep "${down_process}" | wc -c` -gt 0 ]; then
-                # Down‚¾‚Á‚½
+                # Downã ã£ãŸ
                 [ $rc -lt $? ] && rc=$?
                 message="[INFO] Process \"$1\" up"
                 
-                # ƒƒO‚Öo—Í
+                # ãƒ­ã‚°ã¸å‡ºåŠ›
                 logger $message
                 [ $rc -lt $? ] && rc=$?
             fi
@@ -70,7 +70,7 @@ do
     fi
 done
 
-# ƒGƒ‰[ˆ—
+# ã‚¨ãƒ©ãƒ¼å‡¦ç†
 if [ $rc -gt 0 ]; then
     logger "[ERROR] Process check script error (Max Return Code : ${rc})"
 fi
