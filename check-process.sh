@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################
-# Scripts name : check-process.sh ver 1.0
+# Scripts name : check-process.sh
 # Usage        : ./check-process.sh
 #                同一ディレクトリにcheck-process.confを配置し、cronで定期実行する。
 # Description  : Linuxプロセスチェックスクリプト
