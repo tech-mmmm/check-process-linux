@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ################
 # Scripts name : check-process.sh
 # Usage        : ./check-process.sh
@@ -76,4 +75,3 @@ if [ $rc -gt 0 ]; then
 fi
 
 exit $?
-
