@@ -5,7 +5,7 @@
 # Usage        : ./check-process.sh
 #                同一ディレクトリにcheck-process.confを配置し、cronで定期実行する。
 # Description  : Linuxプロセスチェックスクリプト
-# Create       : 2017/12/14 Tetsu Okamoto (https://tech-mmmm.blogspot.jp/)
+# Create       : 2017/12/14 tech-mmmm (https://tech-mmmm.blogspot.com/)
 # Modify       : 
 ################
 
