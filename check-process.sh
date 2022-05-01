@@ -5,73 +5,62 @@
 #                同一ディレクトリにcheck-process.confを配置し、cronで定期実行する。
 # Description  : Linuxプロセスチェックスクリプト
 # Create       : 2017/12/14 tech-mmmm (https://tech-mmmm.blogspot.com/)
-# Modify       : 
+# Modify       : 2022/05/01 tech-mmmm (https://tech-mmmm.blogspot.com/)
 ################
 
-currentdir=`dirname $0`
+currentdir="$(dirname "$0")"
 conffile="${currentdir}/check-process.conf"    # 設定ファイル
 tmpfile="${currentdir}/check-process.tmp"      # プロセス情報保存用一時ファイル
-rc=0    # Retuan Code確認用
 
 # すでにDownしているプロセス情報を取得
-if [ -f ${tmpfile} ]; then
-    down_process=`paste -d "|" -s ${tmpfile}`
+if [ -f "${tmpfile}" ]; then
+    down_process=$(paste -d "|" -s "${tmpfile}")
 fi
-echo -n > ${tmpfile}
+echo -n > "${tmpfile}"
 
 # 設定ファイル読み込み
-cat ${conffile} | while read line
-do
+while read line || [ -n "${line}" ]; do
     # 空白区切りで分割
-    set -- ${line}
-    [ $rc -lt $? ] && rc=$?
+    process_name=$(echo "${line}" | awk '{print $1}')
+    process_num=$(echo "${line}" | awk '{print $2}')
     
     # コメント行と空行を処理しない
-    if [ `echo $1 | grep -v -e '^ *#' -e '^$' | wc -c` -gt 0 ]; then
-        [ $rc -lt $? ] && rc=$?
-        
+    if [ "$(echo "${process_name}" | grep -c -v -e '^ *#' -e '^$')" -gt 0 ]; then      
         # 現在のプロセス数を取得
-        count=`ps ahxo args | grep $1 | grep -v -e "^grep" | wc -l`
-        [ $rc -lt $? ] && rc=$?
+        count=$(ps ahxo args | grep "${process_name}" | grep -c -v -e "^grep")
         
         # プロセス数チェック
-        if [ ${count} -lt $2 ]; then
+        if [ "${count}" -lt "${process_num}" ]; then
             # Down時の処理
             # すでにDownしているプロセスか確認
-            if [ -n "${down_process}" ] && [ `echo $1 | egrep "${down_process}" | wc -c` -gt 0 ]; then
+            if [ -n "${down_process}" ] && [ "$(echo ${process_name} | grep -c -E ${down_process})" -gt 0 ]; then
                 # すでにDown
-                [ $rc -lt $? ] && rc=$?
-                message="[INFO] Process \"$1\" still down"
+                message="[INFO] Process \"${process_name}\" still down"
             else
                 # 初回Down
-                [ $rc -lt $? ] && rc=$?                
-                message="[ERROR] Process \"$1\" down"
+                message="[ERROR] Process \"${process_name}\" down"
             fi
             # ログへ出力
-            logger $message
-            [ $rc -lt $? ] && rc=$?
+            echo "${message}"
+            logger "${message}"
             
             # Donwしているプロセス情報を出力
-            echo $1 >> ${tmpfile}
+            echo "${process_name}" >> "${tmpfile}"
         else
             # Up時の処理
             # Downしていたプロセスか確認
-            if [ -n "${down_process}" ] && [ `echo $1 | egrep "${down_process}" | wc -c` -gt 0 ]; then
+            if [ -n "${down_process}" ] && [ "$(echo ${process_name} | grep -c -E ${down_process})" -gt 0 ]; then
                 # Downだった
-                [ $rc -lt $? ] && rc=$?
-                message="[INFO] Process \"$1\" up"
-                
-                # ログへ出力
-                logger $message
-                [ $rc -lt $? ] && rc=$?
+                message="[INFO] Process \"${process_name}\" up"
+            else
+                # すでにUp
+                message="[INFO] Process \"${process_name}\" still up"
             fi
+            # ログへ出力
+            echo "${message}"
+            logger "${message}"
         fi
     fi
-done
+done < "${conffile}"
 
-# エラー処理
-if [ $rc -gt 0 ]; then
-    logger "[ERROR] Process check script error (Max Return Code : ${rc})"
-fi
-
-exit $?
+exit 0
